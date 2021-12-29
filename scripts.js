@@ -61,7 +61,7 @@
             ctx.fill();
         }
         const drawBall = (x, y) => drawCircle(x, y, BALL_R);
-        const clearCanvas = () => context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        const clearCanvas = () => ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         //Input
         let p1Action = STOP_ACTION;
