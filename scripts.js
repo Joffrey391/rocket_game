@@ -1,4 +1,4 @@
-const canvas = document.getElementById("myCanvas");
+        const canvas = document.getElementById("myCanvas");
         const ctx = canvas.getContext("2d");
 
         //Constans
@@ -13,12 +13,12 @@ const canvas = document.getElementById("myCanvas");
         const PADDLE_HEIGHT = 100;
         const PADDLE_P1_X = 10;
         const PADDLE_P2_X = 770;
-        const PADDLE_START_Y = (CANVAS_HEIGHT - PADDLE_HEIGHT) /2;
+        const PADDLE_START_Y = (CANVAS_HEIGHT - PADDLE_HEIGHT) / 2;
         const PADDLE_STEP = 3;
 
         const BALL_R = 15;
-        const BALL_START_X = CANVAS_WIDTH /2;
-        const BALL_START_Y = CANVAS_HEIGHT /2;
+        const BALL_START_X = CANVAS_WIDTH / 2;
+        const BALL_START_Y = CANVAS_HEIGHT / 2;
         const BALL_START_DX = 4.5;
         const BALL_START_DY = 1.5;
 
@@ -45,6 +45,9 @@ const canvas = document.getElementById("myCanvas");
             }
         }
 
+        const isInBetween = (value, min, max) => {
+           return value >= min && value <= max;
+        } 
 
         //Drawing functions
         ctx.font = "30px Arial";
@@ -105,15 +108,6 @@ const canvas = document.getElementById("myCanvas");
             return coerceIn(paddleY, minPaddleY, maxPaddleY);
         }
 
-        const drawState = () => {
-            clearCanvas();
-            drawPoints(p1Points.toString(), BOARD_P1_X);
-            drawPoints(p2Points.toString(), BOARD_P2_X);
-            drawBall(ballX, ballY);
-            drawPaddle(PADDLE_P1_X, p1PaddleY);
-            drawPaddle(PADDLE_P2_X, p2PaddleY);
-        }
-
         const movePaddles = () => {
             if (p1Action === UP_ACTION && p2PaddleY >= 0) {
                 p1PaddleY = coercePaddle(p1PaddleY - PADDLE_STEP);
@@ -127,8 +121,83 @@ const canvas = document.getElementById("myCanvas");
             }
         }
 
+        const moveBallByStep = () => {
+            ballX += ballDX;
+            ballY += ballDY;
+        }
+
+        const bounceBallFromWall = () => {
+            ballDY = -ballDY;
+        }
+
+        const bounceBallFromPaddle = () => {
+            ballDX = -ballDX;
+        }
+
+        const  moveBallToStart = () => {
+            ballX = BALL_START_X;
+            ballY = BALL_START_Y;
+        }
+
+        const ballIsOutsideOnLeft = () => {
+            return ballX + BALL_R < 0;
+        }
+
+        const ballIsOutsideOnRight = () => {
+            return ballX - BALL_R > CANVAS_WIDTH;
+        }
+
+        const isBallOnTheSameHeightAsPaddle = (paddleY) => {
+            return isInBetween(ballY, paddleY, paddleY + PADDLE_HEIGHT);
+        }
+
+        const shouldBounceFromLeftPaddle = () => {
+            return ballDX < 0 && isInBetween(ballX - BALL_R, PADDLE_P1_X, PADDLE_P1_X + PADDLE_WIDTH) && isBallOnTheSameHeightAsPaddle(p1PaddleY);
+        }
+
+        const shouldBounceFromRightPaddle = () => {
+            return ballDX > 0 && isInBetween(ballX + BALL_R, PADDLE_P2_X, PADDLE_P2_X + PADDLE_WIDTH) && isBallOnTheSameHeightAsPaddle(p2PaddleY);
+        }
+
+        const shouldBounceBallFromTopWall = () => {
+            return ballY <= BALL_R && ballDY < 0;
+        }
+
+        const shouldBounceBallFromBottomWall = () => {
+            return ballY + BALL_R >= CANVAS_HEIGHT && ballDY > 0;
+        }
+
+        const moveBall = () => {
+            if (shouldBounceBallFromTopWall() || shouldBounceBallFromBottomWall()) {
+                bounceBallFromWall();
+            }
+            if (shouldBounceFromLeftPaddle() || shouldBounceFromRightPaddle()) {
+                bounceBallFromPaddle();
+            }
+
+            if (ballIsOutsideOnLeft()) {
+                moveBallToStart();
+                p2Points++;
+            } else if (ballIsOutsideOnRight()) {
+                moveBallToStart();
+                p1Points++;
+            }
+
+            moveBallByStep();
+        }
+
         const updateState = () => {
+            moveBall();
             movePaddles();
+        }
+
+        const drawState = () => {
+            clearCanvas();
+            drawPoints(p1Points.toString(), BOARD_P1_X);
+            drawPoints(p2Points.toString(), BOARD_P2_X);
+            drawBall(ballX, ballY);
+            drawPaddle(PADDLE_P1_X, p1PaddleY);
+            drawPaddle(PADDLE_P2_X, p2PaddleY);
         }
 
         const updateAndDrawState = () => {
